@@ -4,8 +4,8 @@
   "description": "HTML5 canvas real-time drawing using socket.io",
   "main": "demo/server.js",
   "scripts": {
-    "start": "node demo/server.js",
-    "dev": "nodemon demo/server.js",
+    "start": "node newme/server.js",
+    "dev": "nodemon newme/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -28,6 +28,7 @@
     "nodemon": "^2.0.4"
   },
   "dependencies": {
+    "@simonwep/pickr": "^1.8.2",
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
   }
