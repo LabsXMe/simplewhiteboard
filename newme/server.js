@@ -23,10 +23,16 @@ io.on('connection', (socket) => {
     connectedClients[socket.id] = {};
   }
 
+  io.sockets.emit('datalist',connectedClients)
+
   socket.on('disconnect', () => {
     console.log(`Client disconnected (id: ${socket.id})`);
     delete connectedClients[socket.id];
   });
+
+  socket.on('getdata', () => {
+    io.socket.emit('getdata', connectedClients)
+  })
 
   socket.on(socketEvents.DRAW, (data) => {
     const client = connectedClients[socket.id];
@@ -52,6 +58,11 @@ io.on('connection', (socket) => {
   socket.on(socketEvents.DRAW_BEGIN_PATH, () => {
     connectedClients[socket.id].curr = null;
   });
+
+  socket.on('CHANGE_COLOR', (data) => {
+    const clinet = connectedClients[socket.id]
+    console.log(socket.id)
+  })
 });
 
 // Start the server
