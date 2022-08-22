@@ -23,7 +23,6 @@ io.on('connection', (socket) => {
     connectedClients[socket.id] = {};
   }
 
-
   socket.on('disconnect', () => {
     console.log(`Client disconnected (id: ${socket.id})`);
     delete connectedClients[socket.id];
