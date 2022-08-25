@@ -53,38 +53,38 @@ const pickr = new Pickr({
   // },
   components: {
 
-      // Main components
-      // preview: true,
-      opacity: true,
-      hue: true,
+    // Main components
+    // preview: true,
+    opacity: true,
+    hue: true,
 
-      // Input / output Options
-      interaction: {
-          hex: true,
-          input: true
-      }
+    // Input / output Options
+    interaction: {
+      hex: true,
+      input: true
+    }
   },
 
   // Translations, these are the default values.
   i18n: {
 
-      // Strings visible in the UI
-     'ui:dialog': 'color picker dialog',
-     'btn:toggle': 'toggle color picker dialog',
-     'btn:swatch': 'color swatch',
-     'btn:last-color': 'use previous color',
-     'btn:save': 'Save',
-     'btn:cancel': 'Cancel',
-     'btn:clear': 'Clear',
+    // Strings visible in the UI
+    'ui:dialog': 'color picker dialog',
+    'btn:toggle': 'toggle color picker dialog',
+    'btn:swatch': 'color swatch',
+    'btn:last-color': 'use previous color',
+    'btn:save': 'Save',
+    'btn:cancel': 'Cancel',
+    'btn:clear': 'Clear',
 
-     // Strings used for aria-labels
-     'aria:btn:save': 'save and close',
-     'aria:btn:cancel': 'cancel and close',
-     'aria:btn:clear': 'clear and close',
-     'aria:input': 'color input field',
-     'aria:palette': 'color selection area',
-     'aria:hue': 'hue selection slider',
-     'aria:opacity': 'selection slider'
+    // Strings used for aria-labels
+    'aria:btn:save': 'save and close',
+    'aria:btn:cancel': 'cancel and close',
+    'aria:btn:clear': 'clear and close',
+    'aria:input': 'color input field',
+    'aria:palette': 'color selection area',
+    'aria:hue': 'hue selection slider',
+    'aria:opacity': 'selection slider'
   }
 });
 
@@ -92,35 +92,36 @@ let mode = 'free'
 let color = '';
 let thicnes = "1";
 
-let fab = new fabric.Canvas('myCanvas',{ preserveObjectStacking: true })
-fab.backgroundColor='white'
+let fab = new fabric.Canvas('myCanvas', { preserveObjectStacking: true })
+fab.backgroundColor = 'white'
 fab.allowTouchScrolling = true
 fab.selection = false
 
-fab.setDimensions({width:1200,height:700})
+fab.setDimensions({ width: 1200, height: 700 })
 let isLoadedFromJson = false
 setMode()
-function setMode(){
+function setMode() {
   // fab.clear()
-  if(mode == 'free'){
+  if (mode == 'free') {
     fab.freeDrawingBrush = new fabric.PencilBrush(fab);
     fab.freeDrawingBrush.width = thicnes;
     fab.freeDrawingBrush.color = color;
     fab.freeDrawingBrush.limitedToCanvasSize = true;
     fab.isDrawingMode = true
-  }else if(mode == "round"){
+  } else if (mode == "round") {
     drawcle()
+    fab.isDrawingMode = true
+  } else if (mode == "box"){
+    drawrec()
     fab.isDrawingMode = false
-  }else{
+  } else {
     removeEvents()
     fab.isDrawingMode = false
   }
 }
 function drawcle() {
-
   var circle, isDown, origX, origY;
-
-  fab.on('mouse:down', function(o) {
+  fab.on('mouse:down', function (o) {
     isDown = true;
     var pointer = fab.getPointer(o.e);
     origX = pointer.x;
@@ -139,7 +140,7 @@ function drawcle() {
     fab.add(circle);
   });
 
-  fab.on('mouse:move', function(o) {
+  fab.on('mouse:move', function (o) {
     if (!isDown) return;
     var pointer = fab.getPointer(o.e);
     circle.set({
@@ -148,45 +149,85 @@ function drawcle() {
     fab.renderAll()
   });
 
-  fab.on('mouse:up', function(o) {
+  fab.on('mouse:up', function (o) {
     isDown = false;
   });
 }
-function removeall(){
+function drawrec() {
+  var reactangle, isDown, origX, origY;
+  fab.on('mouse:down', function (o) {
+    isDown = true;
+    var pointer = fab.getPointer(o.e);
+    origX = pointer.x;
+    origY = pointer.y;
+    reactangle = new fabric.Rect({
+      left: origX,
+      top: origY,
+      originX: 'left',
+      originY: 'top',
+      width: pointer.x-origX,
+      height: pointer.y-origY,
+      angle: 0,
+      fill: color,
+      transparentCorners: false
+    });
+    fab.add(reactangle);
+  });
+
+  fab.on('mouse:move', function (o) {
+    if (!isDown) return;
+    var pointer = fab.getPointer(o.e);
+    if(origX>pointer.x){
+      reactangle.set({ left: Math.abs(pointer.x) });
+    }
+    if(origY>pointer.y){
+      reactangle.set({ top: Math.abs(pointer.y) });
+    }
+    reactangle.set({ width: Math.abs(origX - pointer.x) });
+    reactangle.set({ height: Math.abs(origY - pointer.y) });
+    fab.renderAll();
+  });
+
+  fab.on('mouse:up', function (o) {
+    isDown = false;
+  });
+}
+
+function removeall() {
   fab.clear()
 }
 
-pickr.on('init',function(instance){
+pickr.on('init', function (instance) {
   console.log(instance._color.toHEXA().toString())
   color = instance._color.toHEXA().toString()
   setMode()
 })
 
-pickr.on('changestop',function(e, instance){
+pickr.on('changestop', function (e, instance) {
   console.log(instance._color.toHEXA().toString())
   color = instance._color.toHEXA().toString()
   console.log(color)
   setMode()
 })
 
-function savewindow(){
+function savewindow() {
   const link = document.createElement('a');
   link.download = 'download.png';
   link.href = fab.toDataURL();
   link.click();
   link.delete;
 }
-function changeThicnes(ini){
+function changeThicnes(ini) {
   thicnes = $(ini).val()
   setMode()
 }
-function removeEvents(){
+function removeEvents() {
   fab.off('mouse:down');
   fab.off('mouse:up');
   fab.off('mouse:move');
 }
 
-$('.selecc').on('change',function(){
+$('.selecc').on('change', function () {
   mode = $(this).val()
   console.log(mode)
   removeEvents();
@@ -199,14 +240,14 @@ function emitEvent() {
   let aux = fab;
   let json = aux.toJSON();
   let data = {
-      from: socket.id,
-      data: json
+    from: socket.id,
+    data: json
   };
   socket.emit('drawing', data);
 }
 
-fab.on('after:render',function(e){
-  if (! isLoadedFromJson) {
+fab.on('after:render', function (e) {
+  if (!isLoadedFromJson) {
     emitEvent();
   }
   isLoadedFromJson = false;
@@ -220,12 +261,12 @@ fab.on('after:render',function(e){
 
 fab.renderAll()
 
-socket.on('connect',function(){
+socket.on('connect', function () {
   console.log('Connected')
   socket.on('drawing', function (obj) {
     //set this flag, to disable infinite rendering loop
     isLoadedFromJson = true
-    if(obj.from != socket.id){
+    if (obj.from != socket.id) {
       fab.loadFromJSON(obj.data);
     }
   });
