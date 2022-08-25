@@ -102,6 +102,7 @@ let isLoadedFromJson = false
 setMode()
 function setMode() {
   // fab.clear()
+  fab.selection = false
   if (mode == 'free') {
     fab.freeDrawingBrush = new fabric.PencilBrush(fab);
     fab.freeDrawingBrush.width = thicnes;
@@ -110,13 +111,14 @@ function setMode() {
     fab.isDrawingMode = true
   } else if (mode == "round") {
     drawcle()
-    fab.isDrawingMode = true
+    fab.isDrawingMode = false
   } else if (mode == "box"){
     drawrec()
     fab.isDrawingMode = false
   } else {
     removeEvents()
     fab.isDrawingMode = false
+    fab.selection = true
   }
 }
 function drawcle() {
