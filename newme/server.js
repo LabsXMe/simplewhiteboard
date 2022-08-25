@@ -48,15 +48,27 @@ io.on('connection', (socket) => {
         x: client.curr.x,
         y: client.curr.y,
       },
+      boxstate:{
+        x: client.curr.xnow,
+        y: client.curr.ynow,
+        w: client.curr.wnow,
+        h: client.curr.hnow
+      },
       color: client.curr.color,
       thickness: client.curr.thickness,
-      start: client.curr.start ?? false
+      start: client.curr.start,
+      type:client.curr.type
     });
   });
 
   socket.on(socketEvents.DRAW_BEGIN_PATH, () => {
     connectedClients[socket.id].curr = null;
   });
+
+  socket.on('drawing', function (canvasJson) {
+    canvasData = canvasJson;
+    socket.broadcast.emit('drawing', canvasData);
+ });
 });
 
 // Start the server

@@ -1,10 +1,18 @@
 var c;
 var socket;
 var pickr = null;
-var color = '';
+var thicnes = 1;
+var color_ = '#42445a';
 var windowsizer = {
     width:0,
     height:0
+}
+var type = 'free'
+var boxstate = {
+  x:-1,
+  y:-1,
+  w:-1,
+  h:-1
 }
 function setup(){
     pickr = new Pickr({
@@ -21,7 +29,7 @@ function setup(){
         disabled: false,
         lockOpacity: false,
         outputPrecision: 0,
-        comparison: true,
+        comparison: false,
         default: '#42445a',
         swatches: null,
         defaultRepresentation: 'HEX',
@@ -63,20 +71,14 @@ function setup(){
         components: {
     
             // Main components
-            preview: true,
+            // preview: true,
             opacity: true,
             hue: true,
     
             // Input / output Options
             interaction: {
                 hex: true,
-                rgba: true,
-                hsla: true,
-                hsva: true,
-                cmyk: true,
-                input: true,
-                clear: true,
-                save: true
+                input: true
             }
         },
     
@@ -106,6 +108,7 @@ function setup(){
     windowsizer.height = document.getElementById('myCanvas').clientHeight
     c = createCanvas(windowsizer.width,windowsizer.height)
     c.parent('myCanvas')
+    background('white');
     socket = io.connect()
     socket.on('connect',function(){
         console.log('connect')
@@ -113,35 +116,107 @@ function setup(){
     socket.on('DRAW', function(e){
         // if(mouseIsPressed){
             if(e.start){
+              if(e.type == 'free'){
                 stroke(e.color)
                 strokeWeight(e.thickness)
                 line(e.prev.x, e.prev.y, e.curr.x, e.curr.y)
+              }else if(e.type == 'box'){
+                // console.log(e.boxstate)
+                fill(e.color)
+                rect(e.boxstate.x, e.boxstate.y, e.boxstate.w, e.boxstate.h);
+              }
             }
         // }
     })
-    pickr.on('save', function(e){
-        color = e.toHEXA().toString()
+    pickr.on('changestop', function(e, instance){
+        // console.log(instance._color)
+        color_ = instance._color.toHEXA().toString()
         // socket.emit('DRAW',{color:color, start:false})
+    })
+    $('.selecc').on('change', function(){
+      type = $(this).val()
     })
 }
 
+function changeThicnes(ini){
+  thicnes = ini.value
+}
+
+function removeall(){
+  clear()
+}
+
 function draw(){
-    if(mouseIsPressed && c){
+    if(mouseIsPressed){
+      // console.log(type)
+      if(type == 'free'){
         socket.emit('DRAW',{
             x: mouseX,
             y: mouseY,
-            thickness:1,
-            color:color,
+            thickness:thicnes,
+            color:color_,
+            type:type,
             start:true
         })
+      }else if(type == 'box'){
+        // console.log(box)
+        if(boxstate.x == -1 && boxstate.y == -1){
+          boxstate.x = mouseX
+          boxstate.y = mouseY
+          socket.emit('DRAW',{
+            xnow:boxstate.x,
+            ynow:boxstate.y,
+            thickness:thicnes,
+            color:color_,
+            type:type,
+            start:true
+          })
+          console.log(box)
+        }else{
+          boxstate.w = mouseX - boxstate.x
+          boxstate.h = mouseY - boxstate.y
+          updatePixels();
+          socket.emit('DRAW',{
+            xnow:boxstate.x,
+            ynow:boxstate.y,
+            wnow:boxstate.w,
+            hnow:boxstate.h,
+            thickness:thicnes,
+            color:color_,
+            type:type,
+            start:true
+          })
+        }
+      }
     }else{
+      if(type == 'free'){
         socket.emit('DRAW',{
             x: mouseX,
             y: mouseY,
-            thickness:1,
-            color:color,
+            thickness:thicnes,
+            color:color_,
+            type:type,
             start:false
         })
+      }else if(type == 'box'){
+        boxstate = {
+          x:-1,
+          y:-1,
+          h:-1,
+          w:-1
+        }
+        socket.emit('DRAW',{
+            xnow:boxstate.x,
+            ynow:boxstate.y,
+            wnow:boxstate.w,
+            hnow:boxstate.h,
+            thickness:thicnes,
+            color:color_,
+            type:type,
+            start:false
+        })
+        loadPixels();
+      }
     }
     // socket.emit('DRAW',{
     //     x: mouseX,
@@ -174,4 +249,8 @@ function windowResized() {
     windowsizer.width = document.getElementById('myCanvas').clientWidth
     windowsizer.height = document.getElementById('myCanvas').clientHeight
     resizeCanvas(windowsizer.width, windowsizer.height);
+}
+
+function savewindow(){
+  saveCanvas(c,'saveimage','png');
 }
